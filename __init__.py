@@ -16,14 +16,14 @@ from typing import List, Dict, Union, Tuple
 # meta info
 bl_info = {
     "name": "SA Model Formats support",
-    "author": "Justin113D",
-    "version": (1, 6, 1),
+    "author": "Justin113D & rixis19",
+    "version": (1, 6, 2),
     "blender": (2, 91, 0),
     "location": "File > Import/Export",
-    "description": ("Import/Exporter for the SA Models Formats.\n"
+    "description": ("Import/Exporter for the SA & SoA Models Formats.\n"
                     "Bugs should be reported to the github repository."),
     "warning": "",
-    "wiki_url": "https://github.com/Justin113D/BlenderSASupport/wiki",
+    "wiki_url": "https://github.com/rixis19/BlenderSASupport/wiki",
     "support": 'COMMUNITY',
     "category": "Import-Export"}
 
@@ -534,6 +534,42 @@ class ExportAnim(bpy.types.Operator, ExportHelper):
 
 # import operators
 
+class ImportAMLD(bpy.types.Operator, ImportHelper):
+    """Imports any SoA amld file"""
+    bl_idname = "import_level.amld"
+    bl_label = "SoA amld file (*.amld)"
+    bl_options = {'PRESET', 'UNDO'}
+
+    filter_glob: StringProperty(
+        default="*.amld;",
+        options={'HIDDEN'},
+        )
+
+    noDoubleVerts: BoolProperty(
+        name = "Merge double vertices",
+        description = "Merge the doubled vertices after importing",
+        default = True,
+        )
+
+    console_debug_output: BoolProperty(
+        name = "Console Output",
+        description = "Shows exporting progress in Console (Slows down Exporting Immensely)",
+        default = False,
+        )
+
+    files: CollectionProperty(
+        name='File paths',
+        type=bpy.types.OperatorFileListElement
+        )
+
+    def execute(self, context):
+        from . import file_AMLD
+
+        path = os.path.dirname(self.filepath)
+        for f in self.files:
+            file_AMLD.read(context, path + "\\" + f.name, self.noDoubleVerts, self.console_debug_output)
+
+        return {'FINISHED'}
 
 class ImportMDL(bpy.types.Operator, ImportHelper):
     """Imports any sonic adventure mdl file"""
@@ -3009,6 +3045,7 @@ def menu_func_exportsa(self, context):
 
 
 def menu_func_importsa(self, context):
+    self.layout.operator(ImportAMLD.bl_idname)
     self.layout.operator(ImportMDL.bl_idname)
     self.layout.operator(ImportLVL.bl_idname)
 
@@ -3025,6 +3062,7 @@ classes = (
     ExportPVMX,
     ExportAnim,
 
+    ImportAMLD,
     ImportMDL,
     ImportLVL,
     ImportTexFile,
